@@ -12,7 +12,9 @@ include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")
 
 set (SOURCE_FILES src/main.cpp)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lGL -lglut")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -lGL -lglut")
+set (CMAKE_CXX_COMPILER g++)
+
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lGL -lGLU -lglut")
+# set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -lGL -lglut")
 
 add_executable (mytest ${SOURCE_FILES})
