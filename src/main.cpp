@@ -91,10 +91,10 @@ void draw_axis()
 void draw_mesh()
 {
 	glBegin(GL_TRIANGLES);
-	for (CMyMesh::MeshFaceIterator fiter(&mesh); !fiter.end(); ++fiter)
+	for (CMyMesh::_MeshFaceIterator fiter(&mesh); !fiter.end(); ++fiter)
 	{
 		CMyFace * pf = *fiter;
-		for (CMyMesh::FaceVertexIterator fviter(pf); !fviter.end(); ++fviter)
+		for (CMyMesh::_FaceVertexIterator fviter(pf); !fviter.end(); ++fviter)
 		{
 			CMyVertex * v = *fviter;
 			CPoint pt = v->point();
@@ -119,7 +119,7 @@ void draw_mesh()
 	CMyVertex * pVert = nullptr;
 	glPointSize(5.);
 	glBegin(GL_POINTS);
-	for (CMyMesh::MeshVertexIterator viter(&mesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(&mesh); !viter.end(); ++viter)
 	{
 		CMyVertex * pV = *viter;
 		if (pV->boundary())
@@ -330,14 +330,14 @@ void mouseMove(int x, int y)
 void normalize_mesh(CMyMesh * pMesh)
 {
 	CPoint s(0, 0, 0);
-	for (CMyMesh::MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
 	{
 		CMyVertex * v = *viter;
 		s = s + v->point();
 	}
 	s = s / pMesh->numVertices();
 
-	for (CMyMesh::MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
 	{
 		CMyVertex * v = *viter;
 		CPoint p = v->point();
@@ -346,7 +346,7 @@ void normalize_mesh(CMyMesh * pMesh)
 	}
 
 	double d = 0;
-	for (CMyMesh::MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
 	{
 		CMyVertex * v = *viter;
 		CPoint p = v->point();
@@ -356,7 +356,7 @@ void normalize_mesh(CMyMesh * pMesh)
 		}
 	}
 
-	for (CMyMesh::MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
 	{
 		CMyVertex * v = *viter;
 		CPoint p = v->point();
@@ -370,11 +370,11 @@ void normalize_mesh(CMyMesh * pMesh)
 */
 void compute_normal(CMyMesh * pMesh)
 {
-	for (CMyMesh::MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
+	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
 	{
 		CMyVertex * v = *viter;
 		CPoint n(0, 0, 0);
-		for (CMyMesh::VertexFaceIterator vfiter(v); !vfiter.end(); ++vfiter)
+		for (CMyMesh::_VertexFaceIterator vfiter(v); !vfiter.end(); ++vfiter)
 		{
 			CMyFace * pF = *vfiter;
 

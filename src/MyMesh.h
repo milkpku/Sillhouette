@@ -72,23 +72,23 @@ namespace MeshLib
 	class MyMesh : public CBaseMesh<V, E, F, H>
 	{
 	public:
-		typedef CBoundary<V, E, F, H>					CBoundary;
-		typedef CLoop<V, E, F, H>						CLoop;
+        typedef CBoundary<V, E, F, H>					_CBoundary;
+		typedef CLoop<V, E, F, H>						_CLoop;
 
-		typedef MeshVertexIterator<V, E, F, H>			MeshVertexIterator;
-		typedef MeshEdgeIterator<V, E, F, H>			MeshEdgeIterator;
-		typedef MeshFaceIterator<V, E, F, H>			MeshFaceIterator;
-		typedef MeshHalfEdgeIterator<V, E, F, H>		MeshHalfEdgeIterator;
+		typedef MeshVertexIterator<V, E, F, H>			_MeshVertexIterator;
+		typedef MeshEdgeIterator<V, E, F, H>			_MeshEdgeIterator;
+		typedef MeshFaceIterator<V, E, F, H>			_MeshFaceIterator;
+		typedef MeshHalfEdgeIterator<V, E, F, H>		_MeshHalfEdgeIterator;
 
-		typedef VertexVertexIterator<V, E, F, H>		VertexVertexIterator;
-		typedef VertexEdgeIterator<V, E, F, H>			VertexEdgeIterator;
-		typedef VertexFaceIterator<V, E, F, H>			VertexFaceIterator;
-		typedef VertexInHalfedgeIterator<V, E, F, H>	VertexInHalfedgeIterator;
-		typedef VertexOutHalfedgeIterator<V, E, F, H>	VertexOutHalfedgeIterator;
+		typedef VertexVertexIterator<V, E, F, H>		_VertexVertexIterator;
+		typedef VertexEdgeIterator<V, E, F, H>			_VertexEdgeIterator;
+		typedef VertexFaceIterator<V, E, F, H>			_VertexFaceIterator;
+		typedef VertexInHalfedgeIterator<V, E, F, H>	_VertexInHalfedgeIterator;
+		typedef VertexOutHalfedgeIterator<V, E, F, H>	_VertexOutHalfedgeIterator;
 
-		typedef FaceVertexIterator<V, E, F, H>			FaceVertexIterator;
-		typedef FaceEdgeIterator<V, E, F, H>			FaceEdgeIterator;
-		typedef FaceHalfedgeIterator<V, E, F, H>		FaceHalfedgeIterator;
+		typedef FaceVertexIterator<V, E, F, H>			_FaceVertexIterator;
+		typedef FaceEdgeIterator<V, E, F, H>			_FaceEdgeIterator;
+		typedef FaceHalfedgeIterator<V, E, F, H>		_FaceHalfedgeIterator;
 
 		void   check_gauss_bonnet_theory();
 	protected:
@@ -106,7 +106,7 @@ namespace MeshLib
 		//1. Calculate the Gauss Curvature for each vertex.
 		_calc_gauss_curvatures();
 		double sum = 0.;
-		for (MeshVertexIterator viter(this); !viter.end(); ++viter)
+		for (_MeshVertexIterator viter(this); !viter.end(); ++viter)
 		{
 			V * pV = *viter;
 			sum += pV->curvature();
