@@ -10,6 +10,8 @@
 #include "Mesh/iterators.h"
 #include "Parser/parser.h"
 
+#include <math.h>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327950288419716939937510
 #endif
@@ -24,12 +26,12 @@ namespace MeshLib
 	class CMyVertex : public CVertex
 	{
 	public:
-		CMyVertex() :m_curvature(0.) {};
+		CMyVertex() :m_curvature(0.){};
 		~CMyVertex() {};
 
 		double & curvature() { return m_curvature; };
 	protected:
-		double m_curvature;
+		double m_curvature; 
 	};
 
 	class CMyEdge : public CEdge
@@ -92,10 +94,13 @@ namespace MeshLib
 
 		void   check_gauss_bonnet_theory();
 	protected:
+        // calculate angles respond for each halgedge
 		void   _calc_angles();
+        // calculate gauss curvature for each vertex
 		void   _calc_gauss_curvatures();
+        // sum gauss curvature and calc euler number
 		double _calc_euler_characteristic();
-		double _cosine_law(double a, double b, double c);
+		double _cosine_law(CPoint a, CPoint b, CPoint c);
 	};
 
 	typedef MyMesh<CMyVertex, CMyEdge, CMyFace, CMyHalfEdge> CMyMesh;
@@ -128,23 +133,56 @@ namespace MeshLib
 	template<typename V, typename E, typename F, typename H>
 	void MyMesh<V, E, F, H>::_calc_angles()
 	{
+        for (_MeshHalfEdgeIterator hiter(this); !hiter.end(); ++hiter)
+        {
+            H * pH = *hiter;
+            double &ang = pH->angle();
+            double _cos = this->_cosine_law(pH->he_next()->target()->point(), pH->source()->point(), pH->target()->point());
+            ang = acos(_cos);
+        }
 	}
 
 	template<typename V, typename E, typename F, typename H>
 	void MyMesh<V, E, F, H>::_calc_gauss_curvatures()
 	{
+        this->_calc_angles();
+        for (_MeshHalfEdgeIterator hiter(this); !hiter.end(); ++hiter)
+        {
+            H * pH = *hiter;
+            V * pV = (V*) pH->he_next()->target();
+            pV->curvature() += pH->angle();
+        }
 
+        for (_MeshVertexIterator viter(this); !viter.end(); ++viter)
+        {
+            V * pV = *viter;
+            double &_cur = pV->curvature();
+            _cur = 2*M_PI - _cur;
+            if (pV->boundary())
+            {
+                _cur -= M_PI;
+            }
+        }
 	}
 
 	template<typename V, typename E, typename F, typename H>
 	double MyMesh<V, E, F, H>::_calc_euler_characteristic()
 	{
-		return 1;
+        double euler = 0;
+        for (_MeshVertexIterator viter(this); !viter.end(); ++viter)
+            euler += 1;
+        for (_MeshEdgeIterator eiter(this); !eiter.end(); ++eiter)
+            euler -= 1;
+        for (_MeshFaceIterator fiter(this); !fiter.end(); ++fiter)
+            euler += 1;
+		return euler ;
 	}
 
 	template<typename V, typename E, typename F, typename H>
-	inline double MyMesh<V, E, F, H>::_cosine_law(double a, double b, double c)
+	inline double MyMesh<V, E, F, H>::_cosine_law(CPoint a, CPoint b, CPoint c)
 	{
-		return 0;
+        CPoint r1 = b - a;
+        CPoint r2 = c - a;
+        return r1*r2 / (r1.norm() * r2.norm());
 	}
 }
