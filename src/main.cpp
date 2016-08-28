@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 #include <GL/glut.h>
 
 #include <glm/glm.hpp>
@@ -25,7 +26,16 @@ CPoint      ObjTrans(0, 0, 0);
 /* global mesh */
 CMyMesh mesh;
 
-//bool show_uv = false;
+/* GL render */
+enum {verVBO, norVBO, faceVBO, cordVBO, num_VBO};
+GLuint VAO;
+GLuint VBO[num_VBO];
+GLuint ProgramID;
+GLuint eyePosID;
+glm::vec3 eyePos(0, 0, 10);
+std::vector<glm::vec3> vertex;
+std::vector<glm::vec3> norm;
+std::vector<size_t> faceID;
 
 /* arcball object */
 CArcball arcball;
@@ -117,40 +127,6 @@ void draw_mesh()
 		}
 	}
 	glEnd();
-
-	/*
-	CMyVertex * pVert = nullptr;
-	glPointSize(5.);
-	glBegin(GL_POINTS);
-	for (CMyMesh::_MeshVertexIterator viter(&mesh); !viter.end(); ++viter)
-	{
-		CMyVertex * pV = *viter;
-		if (pV->boundary())
-		{
-			pVert = pV;
-			break;
-		}
-	}
-	CPoint & p = pVert->point();
-	glVertex3d(p[0], p[1], p[2]);
-	glEnd();
-	glPointSize(1.);
-
-	glLineWidth(2.);
-	glBegin(GL_LINES);
-	glColor3f(1.0, 0.0, 0.0);
-	
-		CMyVertex * pV = pVert;
-		
-		CMyHalfEdge * pH = mesh.vertexMostCcwInHalfEdge(pV);
-		CPoint & a = mesh.halfedgeSource(pH)->point();
-		CPoint & b = mesh.halfedgeTarget(pH)->point();
-		glVertex3d(a[0], a[1], a[2]);
-		glVertex3d(b[0], b[1], b[2]);
-		
-	glEnd();
-	glLineWidth(1.);
-	*/
 }
 
 /*! display call back function
@@ -329,78 +305,6 @@ void mouseMove(int x, int y)
 	}
 
 }
-
-/*! Normalize mesh
-* \param pMesh the input mesh
-*/
-void normalize_mesh(CMyMesh * pMesh)
-{
-	CPoint s(0, 0, 0);
-	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
-	{
-		CMyVertex * v = *viter;
-		s = s + v->point();
-	}
-	s = s / pMesh->numVertices();
-
-	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
-	{
-		CMyVertex * v = *viter;
-		CPoint p = v->point();
-		p = p - s;
-		v->point() = p;
-	}
-
-	double d = 0;
-	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
-	{
-		CMyVertex * v = *viter;
-		CPoint p = v->point();
-		for (int k = 0; k < 3; k++)
-		{
-			d = (d > fabs(p[k])) ? d : fabs(p[k]);
-		}
-	}
-
-	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
-	{
-		CMyVertex * v = *viter;
-		CPoint p = v->point();
-		p = p / d;
-		v->point() = p;
-	}
-};
-
-/*! Compute the face normal and vertex normal
-* \param pMesh the input mesh
-*/
-void compute_normal(CMyMesh * pMesh)
-{
-	for (CMyMesh::_MeshVertexIterator viter(pMesh); !viter.end(); ++viter)
-	{
-		CMyVertex * v = *viter;
-		CPoint n(0, 0, 0);
-		for (CMyMesh::_VertexFaceIterator vfiter(v); !vfiter.end(); ++vfiter)
-		{
-			CMyFace * pF = *vfiter;
-
-			CPoint p[3];
-			CHalfEdge * he = pF->halfedge();
-			for (int k = 0; k < 3; k++)
-			{
-				p[k] = he->target()->point();
-				he = he->he_next();
-			}
-
-			CPoint fn = (p[1] - p[0]) ^ (p[2] - p[0]);
-			pF->normal() = fn / fn.norm();
-			n += fn;
-		}
-
-		n = n / n.norm();
-		v->normal() = n;
-	}
-};
 
 void init_openGL(int argc, char * argv[])
 {
