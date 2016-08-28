@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
-project (hm1)
+project (base)
 
 # set version numer
-set (hm1_VERSION_MAJOR 1)
-set (hm1_VERSION_MINOR 0)
+set (base_VERSION_MAJOR 1)
+set (base_VERSION_MINOR 0)
 
 # include MeshLib
 include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")

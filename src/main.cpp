@@ -3,6 +3,9 @@
 #include <math.h>
 #include <GL/glut.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "viewer/Arcball.h"                           /*  Arc Ball  Interface         */
 
 #include "MyMesh.h"
@@ -39,11 +42,11 @@ bool str_replace(std::string& str, const std::string& from, const std::string& t
 /*! setup the object, transform from the world to the object coordinate system */
 void setupObject(void)
 {
-	double rot[16];
+    glm::dmat4 rot;
 
 	glTranslated(ObjTrans[0], ObjTrans[1], ObjTrans[2]);
-	ObjRot.convert(rot);
-	glMultMatrixd((GLdouble *)rot);
+	ObjRot.convert(glm::value_ptr(rot));
+	glMultMatrixd(glm::value_ptr(rot));
 }
 
 /*! the eye is always fixed at world z = +5 */
@@ -205,7 +208,7 @@ void help()
 	printf("f  -  Flat Shading \n");
 	printf("s  -  Smooth Shading\n");
 	printf("?  -  Help Information\n");
-	printf("esc - quit\n");
+	printf("q - quit\n");
 }
 
 /*! Keyboard call back function */
@@ -229,6 +232,9 @@ void keyBoard(unsigned char key, int x, int y)
 		break;
 	case '?':
 		help();
+		break;
+	case 'q':
+		exit(0);
 		break;
 	case 27:
 		exit(0);
