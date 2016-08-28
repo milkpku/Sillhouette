@@ -10,11 +10,12 @@ include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")
 
 # find OpenGL lib
 
-set (SOURCE_FILES src/main.cpp)
+file (GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file (GLOB_RECURSE HEAD_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 set (CMAKE_CXX_COMPILER g++)
 
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lGL -lGLU -lglut")
 # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -lGL -lglut")
 
-add_executable (mytest ${SOURCE_FILES})
+add_executable (mytest ${SRC_FILES})
