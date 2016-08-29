@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
-#include <GL/glut.h>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,13 +13,13 @@
 
 #include "MyMesh.h"
 #include "controls.h"
-
 using namespace MeshLib;
 
 /* window width and height */
-int win_width, win_height;
+GLFWwindow* mainWindow;
+int win_width = 600;
+int win_height = 400;
 int shadeFlag = 0;
-
 
 /* global mesh */
 CMyMesh mesh;
@@ -118,8 +120,6 @@ void draw_mesh()
 */
 void display()
 {
-	/* clear frame buffer */
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	setupLight();
 	/* transform from the eye coordinate system to the world system */
 	setupEye();
@@ -135,7 +135,6 @@ void display()
 
 	draw_axis();
 	glPopMatrix();
-	glutSwapBuffers();
 }
 
 /*! setup GL states */
@@ -164,23 +163,48 @@ void setupGLstate() {
 }
 
 
-void init_openGL(int argc, char * argv[])
+int init_openGL(int argc, char * argv[])
 {
-	/* glut stuff */
-	glutInit(&argc, argv);                /* Initialize GLUT */
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(800, 600);
-	glutCreateWindow("Mesh Viewer");  /* Create window with given title */
-	glViewport(0, 0, 800, 600);
+    if (!glfwInit())
+    {
+        printf("Fail to initialize GLFW.\n");
+        return -1;
+    }
 
-	glutDisplayFunc(display);             /* Set-up callback functions */
-	glutReshapeFunc(reshape);
-	glutMouseFunc(mouseClick);
-	glutMotionFunc(mouseMove);
-	glutKeyboardFunc(keyBoard);
+    /* create a window and its OpenGL context */
+    mainWindow = glfwCreateWindow(win_width, win_height, "Mesh Viewer", NULL, NULL);
+    if (!mainWindow)
+    {
+        printf("Fail to create Window.\n");
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwSetKeyCallback(mainWindow, keyBoard);
+    glfwSetMouseButtonCallback(mainWindow, mouseClick);
+    glfwSetCursorPosCallback(mainWindow, mouseMove);
+
+    /* Make the window's context current */
+    glfwMakeContextCurrent(mainWindow);
+
 	setupGLstate();
 
-	glutMainLoop();                       /* Start GLUT event-processing loop */
+    while (!glfwWindowShouldClose(mainWindow))
+    {
+        /* Render */
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+        display();
+
+        /* Swap front and back buffers*/
+        glfwSwapBuffers(mainWindow);
+
+        /* Poll for and process event */
+        glfwPollEvents();
+
+    }
+
+
 }
 
 /*! main function for viewer

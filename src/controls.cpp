@@ -1,9 +1,5 @@
-/*
 #include <GLFW/glfw3.h>
 extern GLFWwindow* mainWindow;
-*/
-
-#include <GL/glut.h>
 extern int win_width, win_height;
 extern int shadeFlag;
 
@@ -21,7 +17,7 @@ CQrot       ObjRot(0, 0, 1, 0);
 CPoint      ObjTrans(0, 0, 0);
 
 /* inner variables */
-int startx, starty;
+double startx, starty;
 int gButton; 
 
 void computeMatrixFromInputs()
@@ -29,6 +25,7 @@ void computeMatrixFromInputs()
 }
 
 /*! setup the object, transform from the world to the object coordinate system */
+
 void setupObject(void)
 {
     glm::dmat4 rot;
@@ -39,63 +36,62 @@ void setupObject(void)
 }
 
 /*! mouse click call back function */
-void  mouseClick(int button, int state, int x, int y) {
+void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
 	/* set up an arcball around the Eye's center
 	switch y coordinates to right handed system  */
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
 
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		gButton = GLUT_LEFT_BUTTON;
-		arcball = CArcball(win_width, win_height, x - win_width / 2, win_height - y - win_height / 2);
+		gButton = GLFW_MOUSE_BUTTON_LEFT;
+		arcball = CArcball(win_width, win_height, xpos - win_width / 2, win_height - ypos - win_height / 2);
 	}
 
-	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN) {
-		startx = x;
-		starty = y;
-		gButton = GLUT_MIDDLE_BUTTON;
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
+		startx = xpos;
+		starty = ypos;
+		gButton = GLFW_MOUSE_BUTTON_MIDDLE;
 	}
 
-	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-		startx = x;
-		starty = y;
-		gButton = GLUT_RIGHT_BUTTON;
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		startx = xpos;
+		starty = ypos;
+		gButton = GLFW_MOUSE_BUTTON_RIGHT;
 	}
 	return;
 }
 
 /*! mouse motion call back function */
-void mouseMove(int x, int y)
+void mouseMove(GLFWwindow* window, double xpos, double ypos)
 {
 	CPoint trans;
-	CQrot       rot;
+	CQrot  rot;
 
 	/* rotation, call arcball */
-	if (gButton == GLUT_LEFT_BUTTON)
+	if (gButton == GLFW_MOUSE_BUTTON_LEFT)
 	{
-		rot = arcball.update(x - win_width / 2, win_height - y - win_height / 2);
+		rot = arcball.update(xpos - win_width / 2, win_height - ypos - win_height / 2);
 		ObjRot = rot * ObjRot;
-		glutPostRedisplay();
 	}
 
 	/*xy translation */
-	if (gButton == GLUT_MIDDLE_BUTTON)
+	if (gButton == GLFW_MOUSE_BUTTON_MIDDLE)
 	{
 		double scale = 10. / win_height;
-		trans = CPoint(scale*(x - startx), scale*(starty - y), 0);
-		startx = x;
-		starty = y;
+		trans = CPoint(scale*(xpos - startx), scale*(starty - ypos), 0);
+		startx = xpos;
+		starty = ypos;
 		ObjTrans = ObjTrans + trans;
-		glutPostRedisplay();
 	}
 
 	/* zoom in and out */
-	if (gButton == GLUT_RIGHT_BUTTON) {
+	if (gButton == GLFW_MOUSE_BUTTON_RIGHT) {
 		double scale = 10. / win_height;
-		trans = CPoint(0, 0, scale*(starty - y));
-		startx = x;
-		starty = y;
+		trans = CPoint(0, 0, scale*(starty - ypos));
+		startx = xpos;
+		starty = ypos;
 		ObjTrans = ObjTrans + trans;
-		glutPostRedisplay();
 	}
 
 }
@@ -111,35 +107,35 @@ void help()
 }
 
 /*! Keyboard call back function */
-void keyBoard(unsigned char key, int x, int y)
+void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if (action == GLFW_PRESS){
+
 	switch (key)
 	{
-	case 'f':
+	case GLFW_KEY_F:
 		//Flat Shading
 		glPolygonMode(GL_FRONT, GL_FILL);
 		shadeFlag = 0;
 		break;
-	case 's':
+	case GLFW_KEY_S:
 		//Smooth Shading
 		glPolygonMode(GL_FRONT, GL_FILL);
 		shadeFlag = 1;
 		break;
-	case 'w':
+	case GLFW_KEY_W:
 		//Wireframe mode
 		glPolygonMode(GL_FRONT, GL_LINE);
 		break;
-	case '?':
+	case GLFW_KEY_UNKNOWN:
 		help();
 		break;
-	case 'q':
-		exit(0);
-		break;
-	case 27:
-		exit(0);
+	case GLFW_KEY_Q:
+	case GLFW_KEY_ESCAPE:
+        glfwSetWindowShouldClose(mainWindow, GLFW_TRUE);
 		break;
 	}
-	glutPostRedisplay();
+    }
 }
 
 /*! Called when a "resize" event is received by the window. */
@@ -156,14 +152,14 @@ void reshape(int w, int h)
 	glLoadIdentity();
 
 	// magic imageing commands
-	gluPerspective(40.0, /* field of view in degrees */
-		ar, /* aspect ratio */
-		1.0, /* Z near */
-		100.0 /* Z far */);
 
+    /* gluPerspective(40.0,
+		ar, 
+		1.0,
+		100.0);
+    */
 	glMatrixMode(GL_MODELVIEW);
 
-	glutPostRedisplay();
 }
 
 
