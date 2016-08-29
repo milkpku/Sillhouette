@@ -5,17 +5,22 @@ project (base)
 set (base_VERSION_MAJOR 1)
 set (base_VERSION_MINOR 0)
 
+# find OpenGL lib
+find_package(OpenGL REQUIRED)
+
+set(ALL_LIBS
+    ${OPENGL_LIBRARY}
+    glfw
+    glut
+    GLEW
+)
+
 # include MeshLib
 include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")
 
-# find OpenGL lib
+add_executable (mytest
+    ./src/main.cpp
+    ./src/controls.cpp
+)
 
-file (GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-file (GLOB_RECURSE HEAD_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-
-set (CMAKE_CXX_COMPILER g++)
-
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lGL -lGLU -lglut")
-# set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -lGL -lglut")
-
-add_executable (mytest ${SRC_FILES})
+target_link_libraries(mytest ${ALL_LIBS})
