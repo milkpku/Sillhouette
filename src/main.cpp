@@ -13,6 +13,8 @@
 
 #include "MyMesh.h"
 #include "controls.h"
+#include "shaderLoader.h"
+
 using namespace MeshLib;
 
 /* window width and height */
@@ -20,6 +22,10 @@ GLFWwindow* mainWindow;
 int win_width = 600;
 int win_height = 400;
 int shadeFlag = 0;
+
+glm::vec4 lightColor(0.8, 0.8, 0.8, 1.0);
+glm::vec4 globalAmb(0.1, 0.1, 0.1, 1.0);
+glm::vec3 lightPosition(0.0, 0.0, 1.0);
 
 /* global mesh */
 CMyMesh mesh;
@@ -34,7 +40,6 @@ glm::vec3 eyePos(0, 0, 10);
 std::vector<glm::vec3> vertex;
 std::vector<glm::vec3> norm;
 std::vector<size_t> faceID;
-
 
 bool str_replace(std::string& str, const std::string& from, const std::string& to)
 {
@@ -137,29 +142,70 @@ void display()
 	glPopMatrix();
 }
 
+void buff_model()
+{ 
+    
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(num_VBO, VBO);
+
+    /* prepare vertex & normal data */
+    size_t N = mesh.numVertices();
+    vertex.assign(N, glm::vec3(0,0,0));
+    norm.assign(N, glm::vec3(0,0,0));
+    size_t count = 0;
+    for (CMyMesh::_MeshVertexIterator viter(&mesh); !viter.end(); ++viter)
+    {
+        CMyVertex* pV = *viter;
+        pV->id() = count;
+        CPoint pos = pV->point();
+        CPoint nor = pV->normal();
+        vertex[count] = glm::vec3(pos[0], pos[1], pos[2]); 
+        norm[count] = glm::vec3(nor[0], nor[1], nor[2]);
+        count ++;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[verVBO]);
+    glBufferData(GL_ARRAY_BUFFER, vertex.size()*sizeof(glm::vec3), &vertex[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[norVBO]);
+    glBufferData(GL_ARRAY_BUFFER, norm.size()*sizeof(glm::vec3), &norm[0], GL_STATIC_DRAW);
+
+    /* prepare faceID data */
+    size_t M = mesh.numFaces();
+    faceID.assign(M*3, 0);
+    count = 0;
+    for (CMyMesh::_MeshFaceIterator fiter(&mesh); !fiter.end(); ++fiter)
+    {
+        CMyFace* pF = *fiter;
+        CMyHalfEdge* pH = (CMyHalfEdge*)pF->halfedge();
+        faceID[3*count] = pH->source()->id();
+        faceID[3*count + 1] = pH->target()->id();
+        faceID[3*count + 2] = pH->he_next()->target()->id();
+        count ++;
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO[faceVBO]);
+    glBufferData(GL_ARRAY_BUFFER, faceID.size(), &faceID[0], GL_STATIC_DRAW);
+
+}
+
+void prepareProgram()
+{
+    /* prepare Program */
+    ProgramID = shaderLoader("src/vertexShader.glsl", "fragmentShader.glsl");
+    eyePosID = glGetUniformLocation(ProgramID, "eyePos");
+}
+
 /*! setup GL states */
 void setupGLstate() {
-	GLfloat lightOneColor[] = { 0.8, 0.8, 0.8, 1.0 };
-	GLfloat globalAmb[] = { .1, .1, .1, 1 };
-	GLfloat lightOnePosition[] = { .0, 0.0, 1.0, 1.0 };
 
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.35, 0.53, 0.70, 0);
 	glShadeModel(GL_SMOOTH);
-
-	glEnable(GL_LIGHT1);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_NORMALIZE);
-	glEnable(GL_COLOR_MATERIAL);
-
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightOneColor);
-	glLightfv(GL_LIGHT2, GL_DIFFUSE, lightOneColor);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmb);
-	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-	glLightfv(GL_LIGHT1, GL_POSITION, lightOnePosition);
 }
 
 
