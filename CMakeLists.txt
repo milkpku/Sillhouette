@@ -18,9 +18,18 @@ set(ALL_LIBS
 # include MeshLib
 include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")
 
+# set Debug mode
+set (CMAKE_BUILD_TYPE "Debug")
+set (CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -o0 -Wall -g2 -ggdb")
+
 add_executable (mytest
     ./src/main.cpp
     ./src/controls.cpp
 )
 
 target_link_libraries(mytest ${ALL_LIBS})
+
+add_custom_command(
+    TARGET mytest POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "mytest" "${CMAKE_CURRENT_SOURCE_DIR}/mytest"
+)

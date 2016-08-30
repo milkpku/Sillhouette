@@ -30,8 +30,10 @@ namespace MeshLib
 		~CMyVertex() {};
 
 		double & curvature() { return m_curvature; };
+        unsigned int & draw_id() {return m_draw_id; };
 	protected:
 		double m_curvature; 
+        unsigned int m_draw_id;
 	};
 
 	class CMyEdge : public CEdge

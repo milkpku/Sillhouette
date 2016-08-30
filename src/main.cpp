@@ -34,12 +34,13 @@ CMyMesh mesh;
 enum {verVBO, norVBO, faceVBO, cordVBO, num_VBO};
 GLuint VAO;
 GLuint VBO[num_VBO];
-GLuint ProgramID;
-GLuint eyePosID;
 glm::vec3 eyePos(0, 0, 10);
 std::vector<glm::vec3> vertex;
 std::vector<glm::vec3> norm;
-std::vector<size_t> faceID;
+std::vector<unsigned int> faceID;
+/* shader data */
+GLuint ProgramID;
+GLuint eyePosID, MVPID;
 
 bool str_replace(std::string& str, const std::string& from, const std::string& to)
 {
@@ -50,19 +51,6 @@ bool str_replace(std::string& str, const std::string& from, const std::string& t
 	return true;
 }
 
-
-/*! the eye is always fixed at world z = +5 */
-void setupEye(void) {
-	glLoadIdentity();
-	gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0);
-}
-
-/*! setup light */
-void setupLight()
-{
-	GLfloat lightOnePosition[4] = { 0, 0, 1, 0 };
-	glLightfv(GL_LIGHT1, GL_POSITION, lightOnePosition);
-}
 
 /*! draw axis */
 void draw_axis()
@@ -95,51 +83,21 @@ void draw_axis()
 /*! draw mesh */
 void draw_mesh()
 {
-	glBegin(GL_TRIANGLES);
-	for (CMyMesh::_MeshFaceIterator fiter(&mesh); !fiter.end(); ++fiter)
-	{
-		CMyFace * pf = *fiter;
-		for (CMyMesh::_FaceVertexIterator fviter(pf); !fviter.end(); ++fviter)
-		{
-			CMyVertex * v = *fviter;
-			CPoint pt = v->point();
-			CPoint n;
-			switch (shadeFlag)
-			{
-			case 0:
-				n = pf->normal();
-				break;
-			case 1:
-				n = v->normal();
-				break;
-			}
-			glNormal3d(n[0], n[1], n[2]);
-			glColor3f(1.0, 1.0, 1.0);
-			glVertex3d(pt[0], pt[1], pt[2]);
-		}
-	}
-	glEnd();
-}
+    glUseProgram(ProgramID);
+    glBindVertexArray(VAO);
 
-/*! display call back function
-*/
-void display()
-{
-	setupLight();
-	/* transform from the eye coordinate system to the world system */
-	setupEye();
-	glPushMatrix();
-	/* transform from the world to the ojbect coordinate system */
-	setupObject();
-	/* draw the mesh */
-	draw_mesh();
+    //glUniform3fv(eyePosID, 3, &eyePos[0]);
+    
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[verVBO]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-	//mesh.display_vertexes();
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[norVBO]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-	//mesh.display_faces();
-
-	draw_axis();
-	glPopMatrix();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO[faceVBO]);
+    glDrawElements(GL_TRIANGLES, faceID.size(), GL_UNSIGNED_INT, (void*)0);
 }
 
 void buff_model()
@@ -151,14 +109,14 @@ void buff_model()
     glGenBuffers(num_VBO, VBO);
 
     /* prepare vertex & normal data */
-    size_t N = mesh.numVertices();
+    unsigned int N = mesh.numVertices();
     vertex.assign(N, glm::vec3(0,0,0));
     norm.assign(N, glm::vec3(0,0,0));
-    size_t count = 0;
+    unsigned int count = 0;
     for (CMyMesh::_MeshVertexIterator viter(&mesh); !viter.end(); ++viter)
     {
         CMyVertex* pV = *viter;
-        pV->id() = count;
+        pV->draw_id() = count;
         CPoint pos = pV->point();
         CPoint nor = pV->normal();
         vertex[count] = glm::vec3(pos[0], pos[1], pos[2]); 
@@ -180,41 +138,42 @@ void buff_model()
     {
         CMyFace* pF = *fiter;
         CMyHalfEdge* pH = (CMyHalfEdge*)pF->halfedge();
-        faceID[3*count] = pH->source()->id();
-        faceID[3*count + 1] = pH->target()->id();
-        faceID[3*count + 2] = pH->he_next()->target()->id();
+        faceID[3*count] = ((CMyVertex*)pH->source())->draw_id();
+        faceID[3*count + 1] = ((CMyVertex*)pH->target())->draw_id();
+        faceID[3*count + 2] = ((CMyVertex*)pH->he_next()->target())->draw_id();
         count ++;
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO[faceVBO]);
-    glBufferData(GL_ARRAY_BUFFER, faceID.size(), &faceID[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, faceID.size()*sizeof(unsigned int), &faceID[0], GL_STATIC_DRAW);
 
 }
 
 void prepareProgram()
 {
     /* prepare Program */
-    ProgramID = shaderLoader("src/vertexShader.glsl", "fragmentShader.glsl");
-    eyePosID = glGetUniformLocation(ProgramID, "eyePos");
+    ProgramID = shaderLoader("src/vertexShader.glsl", "src/fragmentShader.glsl");
+    //eyePosID = glGetUniformLocation(ProgramID, "eyePos");
 }
 
 /*! setup GL states */
 void setupGLstate() {
-
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.35, 0.53, 0.70, 0);
-	glShadeModel(GL_SMOOTH);
+
+    buff_model();
+    prepareProgram();
 }
 
 
-int init_openGL(int argc, char * argv[])
+void init_openGL(int argc, char * argv[])
 {
     if (!glfwInit())
     {
         printf("Fail to initialize GLFW.\n");
-        return -1;
+        return;
     }
 
     /* create a window and its OpenGL context */
@@ -223,15 +182,22 @@ int init_openGL(int argc, char * argv[])
     {
         printf("Fail to create Window.\n");
         glfwTerminate();
-        return -1;
+        return;
+    }
+
+    /* Make the window's context current */
+    glfwMakeContextCurrent(mainWindow);
+
+    if (glewInit() != GLEW_OK)
+    {
+        printf("Fail to initialize GLEW.\n");
+        glfwTerminate();
+        return;
     }
 
     glfwSetKeyCallback(mainWindow, keyBoard);
     glfwSetMouseButtonCallback(mainWindow, mouseClick);
     glfwSetCursorPosCallback(mainWindow, mouseMove);
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(mainWindow);
 
 	setupGLstate();
 
@@ -240,7 +206,9 @@ int init_openGL(int argc, char * argv[])
         /* Render */
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-        display();
+        draw_mesh();
+
+        draw_axis();
 
         /* Swap front and back buffers*/
         glfwSwapBuffers(mainWindow);
@@ -249,8 +217,6 @@ int init_openGL(int argc, char * argv[])
         glfwPollEvents();
 
     }
-
-
 }
 
 /*! main function for viewer

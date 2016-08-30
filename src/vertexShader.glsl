@@ -2,9 +2,8 @@
 layout (location = 0) in vec3 vPos;
 layout (location = 1) in vec3 vNorm;
 
-uniform MVP{
-    mat4 MVP;
-}
+//uniform mat4 MVP;
+
 out vec3 pos;
 out vec3 normal;
 
