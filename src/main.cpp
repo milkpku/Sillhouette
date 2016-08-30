@@ -25,7 +25,7 @@ int shadeFlag = 0;
 
 glm::vec4 lightColor(0.8, 0.8, 0.8, 1.0);
 glm::vec4 globalAmb(0.1, 0.1, 0.1, 1.0);
-glm::vec3 eye(0, 0, 3);
+glm::vec4 eye(1, 0, 0, 0);
 
 /* global mesh */
 CMyMesh mesh;
@@ -41,6 +41,14 @@ std::vector<unsigned int> faceID;
 /* shader data */
 GLuint ProgramID;
 GLuint MatrixID, CameraID, ModelID, EyeID;
+
+/* update eye */
+void update_eye()
+{
+    eye.w += 0.001;
+    eye.x = cos(eye.w);
+    eye.y = sin(eye.w);
+}
 
 /* draw eye */
 void draw_eye()
@@ -222,10 +230,10 @@ void init_openGL(int argc, char * argv[])
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         draw_mesh();
-
         draw_axis();
-
         draw_eye();
+        
+        update_eye();
 
         /* Swap front and back buffers*/
         glfwSwapBuffers(mainWindow);

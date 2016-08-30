@@ -27,7 +27,7 @@ void main()
     vec3 sight = amb + light * cosAlpha;
     color = vec4(sight, 0.4);
 
-    if (abs(cosBeta)<3e-3){
+    if (abs(cosBeta)<7e-3){
         color = vec4(1.0, 0.0, 0.0, 1.0);
     }
 }
