@@ -5,6 +5,7 @@ extern int shadeFlag;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "viewer/Arcball.h"
 using namespace MeshLib;
@@ -14,26 +15,50 @@ CArcball arcball;
 
 /* rotation quaternion and translation vector for the object */
 CQrot       ObjRot(0, 0, 1, 0);
-CPoint      ObjTrans(0, 0, 0);
+glm::vec3   camera(0, 0, 1);
 
 /* inner variables */
 double startx, starty;
 int gButton; 
+int gState; 
 
+/* inner mantained */
+glm::dmat4 Model;
+glm::mat4 View;
+glm::mat4 Projection;
+
+/* update at each main loop */
 void computeMatrixFromInputs()
 {
+    ObjRot.convert(glm::value_ptr(Model));
+    View = glm::lookAt(
+                        camera,                             /* Camera location */
+                        glm::vec3(camera.x, camera.y, 0), /* and looks at this point */
+                        glm::vec3(0, 1, 0)                    /* Head is up */
+            );
+    Projection = glm::perspective(45.0f, win_width/(float) win_height, 0.1f, 100.0f);
 }
 
-/*! setup the object, transform from the world to the object coordinate system */
-
-void setupObject(void)
-{
-    glm::dmat4 rot;
-
-	glTranslated(ObjTrans[0], ObjTrans[1], ObjTrans[2]);
-	ObjRot.convert(glm::value_ptr(rot));
-	glMultMatrixd(glm::value_ptr(rot));
+glm::vec3 getCamera(){
+    return camera;
 }
+
+glm::mat4 getMVP(){
+	return Projection * View * glm::mat4(Model);
+}
+
+glm::mat4 getView(){
+    return View;
+}
+
+glm::mat4 getModel(){
+    return Model;
+}
+
+glm::mat4 getProjection(){
+    return Projection;
+}
+
 
 /*! mouse click call back function */
 void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
@@ -42,6 +67,8 @@ void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
+    gState = action;
+    
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		gButton = GLFW_MOUSE_BUTTON_LEFT;
@@ -65,8 +92,13 @@ void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
 /*! mouse motion call back function */
 void mouseMove(GLFWwindow* window, double xpos, double ypos)
 {
-	CPoint trans;
+    glm::vec3 trans;
 	CQrot  rot;
+
+    if (gState!=GLFW_PRESS)
+    {
+        return;
+    }
 
 	/* rotation, call arcball */
 	if (gButton == GLFW_MOUSE_BUTTON_LEFT)
@@ -79,20 +111,22 @@ void mouseMove(GLFWwindow* window, double xpos, double ypos)
 	if (gButton == GLFW_MOUSE_BUTTON_MIDDLE)
 	{
 		double scale = 10. / win_height;
-		trans = CPoint(scale*(xpos - startx), scale*(starty - ypos), 0);
+		trans = glm::vec3(scale*(xpos - startx), scale*(starty - ypos), 0);
 		startx = xpos;
 		starty = ypos;
-		ObjTrans = ObjTrans + trans;
+		camera = camera + trans;
 	}
 
 	/* zoom in and out */
 	if (gButton == GLFW_MOUSE_BUTTON_RIGHT) {
 		double scale = 10. / win_height;
-		trans = CPoint(0, 0, scale*(starty - ypos));
+		trans = glm::vec3(0, 0, scale*(starty - ypos));
 		startx = xpos;
 		starty = ypos;
-		ObjTrans = ObjTrans + trans;
+		camera = camera + trans;
 	}
+
+    printf("%f %f %f\n", camera.x, camera.y, camera.z);
 
 }
 
@@ -109,7 +143,11 @@ void help()
 /*! Keyboard call back function */
 void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (action == GLFW_PRESS){
+    if (action != GLFW_PRESS){
+        return;
+    }
+
+    printf("%d\n", key);
 
 	switch (key)
 	{
@@ -127,6 +165,7 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
 		//Wireframe mode
 		glPolygonMode(GL_FRONT, GL_LINE);
 		break;
+	case GLFW_KEY_H:
 	case GLFW_KEY_UNKNOWN:
 		help();
 		break;
@@ -135,31 +174,13 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
         glfwSetWindowShouldClose(mainWindow, GLFW_TRUE);
 		break;
 	}
-    }
 }
 
 /*! Called when a "resize" event is received by the window. */
 void reshape(int w, int h)
 {
-	float ar;
-	//std::cout << "w:" << w << "\th:" << h << std::endl;
 	win_width = w;
 	win_height = h;
-
-	ar = (float)(w) / h;
-	glViewport(0, 0, w, h);               /* Set Viewport */
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	// magic imageing commands
-
-    /* gluPerspective(40.0,
-		ar, 
-		1.0,
-		100.0);
-    */
-	glMatrixMode(GL_MODELVIEW);
-
 }
 
 

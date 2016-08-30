@@ -2,11 +2,19 @@
 #define _CONTROLS_H_
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
+/* runtime update */
 void computeMatrixFromInputs();
 
-void setupObject();
+/* inner variable */
+glm::vec3 getCamera();
+glm::mat4 getMVP();
+glm::mat4 getModel();
+glm::mat4 getView();
+glm::mat4 getProjection();
 
+/* input control */
 void mouseClick(GLFWwindow* window, int button, int action, int mods);
 
 void mouseMove(GLFWwindow* window, double xpos, double ypos);

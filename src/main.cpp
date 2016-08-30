@@ -38,19 +38,10 @@ glm::vec3 eyePos(0, 0, 10);
 std::vector<glm::vec3> vertex;
 std::vector<glm::vec3> norm;
 std::vector<unsigned int> faceID;
+
 /* shader data */
 GLuint ProgramID;
-GLuint eyePosID, MVPID;
-
-bool str_replace(std::string& str, const std::string& from, const std::string& to)
-{
-	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
-		return false;
-	str.replace(start_pos, from.length(), to);
-	return true;
-}
-
+GLuint MatrixID, CameraID, ModelID;
 
 /*! draw axis */
 void draw_axis()
@@ -86,7 +77,13 @@ void draw_mesh()
     glUseProgram(ProgramID);
     glBindVertexArray(VAO);
 
-    //glUniform3fv(eyePosID, 3, &eyePos[0]);
+    /* buff uniform variable */
+    glm::mat4 MVP = getMVP(); 
+    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+    glm::mat4 M = getModel();
+    glUniformMatrix4fv(ModelID, 1, GL_FALSE, &M[0][0]);
+    glm::vec3 camera = getCamera();
+    glUniform3fv(CameraID, 1, &camera[0]);
     
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[verVBO]);
@@ -153,7 +150,9 @@ void prepareProgram()
 {
     /* prepare Program */
     ProgramID = shaderLoader("src/vertexShader.glsl", "src/fragmentShader.glsl");
-    //eyePosID = glGetUniformLocation(ProgramID, "eyePos");
+    MatrixID = glGetUniformLocation(ProgramID, "MVP");
+    CameraID = glGetUniformLocation(ProgramID, "CameraDirection_worldspace");
+    ModelID = glGetUniformLocation(ProgramID, "M");
 }
 
 /*! setup GL states */
@@ -203,6 +202,9 @@ void init_openGL(int argc, char * argv[])
 
     while (!glfwWindowShouldClose(mainWindow))
     {
+        /* compute rotation and projection matrix */
+        computeMatrixFromInputs();
+
         /* Render */
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
