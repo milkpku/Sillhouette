@@ -25,7 +25,7 @@ int shadeFlag = 0;
 
 glm::vec4 lightColor(0.8, 0.8, 0.8, 1.0);
 glm::vec4 globalAmb(0.1, 0.1, 0.1, 1.0);
-glm::vec3 lightPosition(0.0, 0.0, 1.0);
+glm::vec3 eye(0, 0, 3);
 
 /* global mesh */
 CMyMesh mesh;
@@ -34,14 +34,22 @@ CMyMesh mesh;
 enum {verVBO, norVBO, faceVBO, cordVBO, num_VBO};
 GLuint VAO;
 GLuint VBO[num_VBO];
-glm::vec3 eyePos(0, 0, 10);
 std::vector<glm::vec3> vertex;
 std::vector<glm::vec3> norm;
 std::vector<unsigned int> faceID;
 
 /* shader data */
 GLuint ProgramID;
-GLuint MatrixID, CameraID, ModelID;
+GLuint MatrixID, CameraID, ModelID, EyeID;
+
+/* draw eye */
+void draw_eye()
+{
+    glPointSize(10.0);
+    glBegin(GL_POINTS);
+    glVertex3d(eye.x, eye.y, eye.z);
+    glEnd();
+}
 
 /*! draw axis */
 void draw_axis()
@@ -83,7 +91,8 @@ void draw_mesh()
     glm::mat4 M = getModel();
     glUniformMatrix4fv(ModelID, 1, GL_FALSE, &M[0][0]);
     glm::vec3 camera = getCamera();
-    glUniform3fv(CameraID, 1, &camera[0]);
+    glUniform3f(CameraID, camera.x, camera.y, camera.z);
+    glUniform3f(EyeID, eye.x, eye.y, eye.z);
     
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, VBO[verVBO]);
@@ -95,6 +104,9 @@ void draw_mesh()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO[faceVBO]);
     glDrawElements(GL_TRIANGLES, faceID.size(), GL_UNSIGNED_INT, (void*)0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 }
 
 void buff_model()
@@ -151,8 +163,9 @@ void prepareProgram()
     /* prepare Program */
     ProgramID = shaderLoader("src/vertexShader.glsl", "src/fragmentShader.glsl");
     MatrixID = glGetUniformLocation(ProgramID, "MVP");
-    CameraID = glGetUniformLocation(ProgramID, "CameraDirection_worldspace");
     ModelID = glGetUniformLocation(ProgramID, "M");
+    CameraID = glGetUniformLocation(ProgramID, "CameraPosition_worldspace");
+    EyeID = glGetUniformLocation(ProgramID, "EyePosition_modelspace");
 }
 
 /*! setup GL states */
@@ -211,6 +224,8 @@ void init_openGL(int argc, char * argv[])
         draw_mesh();
 
         draw_axis();
+
+        draw_eye();
 
         /* Swap front and back buffers*/
         glfwSwapBuffers(mainWindow);

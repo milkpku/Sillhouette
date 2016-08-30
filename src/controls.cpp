@@ -52,7 +52,7 @@ glm::mat4 getView(){
 }
 
 glm::mat4 getModel(){
-    return Model;
+    return glm::mat4(Model);
 }
 
 glm::mat4 getProjection(){
@@ -126,8 +126,6 @@ void mouseMove(GLFWwindow* window, double xpos, double ypos)
 		camera = camera + trans;
 	}
 
-    printf("%f %f %f\n", camera.x, camera.y, camera.z);
-
 }
 
 /*! helper function to remind the user about commands, hot keys */
@@ -146,8 +144,6 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
     if (action != GLFW_PRESS){
         return;
     }
-
-    printf("%d\n", key);
 
 	switch (key)
 	{
