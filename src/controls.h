@@ -19,10 +19,10 @@ void mouseClick(GLFWwindow* window, int button, int action, int mods);
 
 void mouseMove(GLFWwindow* window, double xpos, double ypos);
 
-void help();
-
 void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void reshape(int w, int h);
+void reshape(GLFWwindow* window, int w, int h);
+
+void help();
 
 #endif

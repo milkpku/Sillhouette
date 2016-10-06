@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include <GLFW/glfw3.h>
-extern GLFWwindow* mainWindow;
 extern int win_width, win_height;
 extern int shadeFlag;
 
@@ -168,16 +167,19 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
 		break;
 	case GLFW_KEY_Q:
 	case GLFW_KEY_ESCAPE:
-        glfwSetWindowShouldClose(mainWindow, GLFW_TRUE);
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
 		break;
 	}
 }
 
 /*! Called when a "resize" event is received by the window. */
-void reshape(int w, int h)
+void reshape(GLFWwindow* window, int w, int h)
 {
 	win_width = w;
 	win_height = h;
+
+    /* re project */
+    glViewport(0, 0, win_width, win_height);
 }
 
 

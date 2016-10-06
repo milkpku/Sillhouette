@@ -43,6 +43,12 @@ class ArcBall
         {
             double x = xpos / m_radius;
             double y = ypos / m_radius;
+            double l =  std::sqrt( x*x + y*y );
+            
+            /* if curser move out of window */
+            if (l>1.0)
+                return glm::vec3(x/l, y/l, 0);
+
             return glm::vec3( x, y, std::sqrt(1 - x*x - y*y) );
         };
 

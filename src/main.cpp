@@ -218,6 +218,7 @@ void init_openGL(int argc, char * argv[])
     glfwSetKeyCallback(mainWindow, keyBoard);
     glfwSetMouseButtonCallback(mainWindow, mouseClick);
     glfwSetCursorPosCallback(mainWindow, mouseMove);
+    glfwSetWindowSizeCallback(mainWindow, reshape);
 
 	setupGLstate();
 
