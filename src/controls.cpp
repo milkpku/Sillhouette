@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <GLFW/glfw3.h>
 extern GLFWwindow* mainWindow;
 extern int win_width, win_height;
@@ -7,14 +9,13 @@ extern int shadeFlag;
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "viewer/Arcball.h"
-using namespace MeshLib;
+#include "arcball.h"
 
 /* arcball object */
-CArcball arcball;
+ArcBall arcball;
 
 /* rotation quaternion and translation vector for the object */
-CQrot       ObjRot(0, 0, 1, 0);
+glm::dquat  ObjRot(0, 0, 1, 0);
 glm::vec3   camera(0, 0, 1);
 
 /* inner variables */
@@ -30,7 +31,7 @@ glm::mat4 Projection;
 /* update at each main loop */
 void computeMatrixFromInputs()
 {
-    ObjRot.convert(glm::value_ptr(Model));
+    Model = glm::toMat4(ObjRot);
     View = glm::lookAt(
                         camera,                             /* Camera location */
                         glm::vec3(camera.x, camera.y, 0), /* and looks at this point */
@@ -72,7 +73,7 @@ void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		gButton = GLFW_MOUSE_BUTTON_LEFT;
-		arcball = CArcball(win_width, win_height, xpos - win_width / 2, win_height - ypos - win_height / 2);
+		arcball.reset(win_width, win_height, xpos - win_width / 2, win_height - ypos - win_height / 2);
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS) {
@@ -92,8 +93,8 @@ void  mouseClick(GLFWwindow* window, int button, int action, int mods) {
 /*! mouse motion call back function */
 void mouseMove(GLFWwindow* window, double xpos, double ypos)
 {
-    glm::vec3 trans;
-	CQrot  rot;
+    glm::vec3   trans;
+    glm::dquat  rot;
 
     if (gState!=GLFW_PRESS)
     {
