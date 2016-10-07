@@ -17,14 +17,17 @@ set(ALL_LIBS
 
 # include MeshLib
 include_directories ("${PROJECT_SOURCE_DIR}/MeshLib/core")
+include_directories ("${PROJECT_SOURCE_DIR}/src")
 
 # set Debug mode
 set (CMAKE_BUILD_TYPE "Debug")
 set (CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -o0 -Wall -g2 -ggdb")
 
 add_executable (mytest
-    ./src/main.cpp
+    ./src/MyMesh.cpp
     ./src/controls.cpp
+    ./src/Viewer.cpp
+    ./src/main.cpp
 )
 
 target_link_libraries(mytest ${ALL_LIBS})

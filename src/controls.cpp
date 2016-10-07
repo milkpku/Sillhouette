@@ -1,14 +1,15 @@
 #include <stdio.h>
 
 #include <GLFW/glfw3.h>
-extern int win_width, win_height;
-extern int shadeFlag;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "controls.h"
 #include "arcball.h"
+
+namespace Control{
 
 /* arcball object */
 ArcBall arcball;
@@ -18,6 +19,7 @@ glm::dquat  ObjRot(0, 0, 1, 0);
 glm::vec3   camera(0, 0, 1);
 
 /* inner variables */
+int win_width, win_height;
 double startx, starty;
 int gButton; 
 int gState; 
@@ -26,6 +28,12 @@ int gState;
 glm::dmat4 Model;
 glm::mat4 View;
 glm::mat4 Projection;
+
+/* controler initialize */
+void control_init(GLFWwindow* window)
+{
+    glfwGetWindowSize(window, &win_width, &win_height);
+}
 
 /* update at each main loop */
 void computeMatrixFromInputs()
@@ -150,12 +158,10 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods)
 	case GLFW_KEY_F:
 		//Flat Shading
 		glPolygonMode(GL_FRONT, GL_FILL);
-		shadeFlag = 0;
 		break;
 	case GLFW_KEY_S:
 		//Smooth Shading
 		glPolygonMode(GL_FRONT, GL_FILL);
-		shadeFlag = 1;
 		break;
 	case GLFW_KEY_W:
 		//Wireframe mode
@@ -182,4 +188,4 @@ void reshape(GLFWwindow* window, int w, int h)
     glViewport(0, 0, win_width, win_height);
 }
 
-
+}

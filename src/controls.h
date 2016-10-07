@@ -4,6 +4,11 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+namespace Control{
+
+/* controler initialize */
+void control_init(GLFWwindow* window);
+
 /* runtime update */
 void computeMatrixFromInputs();
 
@@ -24,5 +29,6 @@ void keyBoard(GLFWwindow* window, int key, int scancode, int action, int mods);
 void reshape(GLFWwindow* window, int w, int h);
 
 void help();
+}
 
 #endif
